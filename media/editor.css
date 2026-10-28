@@ -1,0 +1,16 @@
+body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); background: var(--vscode-editor-background); padding: 20px; max-width: 850px; line-height: 1.6; }
+[hidden] { display: none !important; }
+h1 { font-size: 24px; } h2 { font-size: 18px; }
+label { display: inline-flex; align-items: center; gap: 8px; margin: 6px 12px 6px 0; }
+input, select { color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, #888)); padding: 6px; }
+input[type=color] { width: 60px; height: 36px; padding: 2px; }
+input[type=checkbox] { accent-color: var(--vscode-focusBorder); }
+button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: 1px solid transparent; padding: 7px 12px; cursor: pointer; margin: 4px; }
+button:hover { background: var(--vscode-button-hoverBackground); }
+:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
+fieldset { margin-top: 16px; border: 1px solid var(--vscode-panel-border); }
+#modifiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4px 12px; }
+#modifiers label { margin-right: 0; }
+.notice { padding: 12px; border-left: 3px solid var(--vscode-focusBorder); background: var(--vscode-textBlockQuote-background); }
+#selector { font-family: var(--vscode-editor-font-family); } #status { min-height: 2em; }
+ul { padding-left: 20px; } .toolbar { margin-top: 12px; }

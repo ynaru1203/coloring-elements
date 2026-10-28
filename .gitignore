@@ -1,0 +1,15 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+.npm-cache/
+.dotnet/
+.nuget/
+**/bin/
+**/obj/
+analyzer-bin/
+.env
+.env.*
+!.env.example
+*.log

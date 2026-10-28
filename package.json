@@ -1,0 +1,102 @@
+{
+  "name": "coloring-elements",
+  "displayName": "Coloring Elements",
+  "description": "GUI-based C# color customization with Roslyn-aware symbol, keyword and literal rules.",
+  "version": "0.2.1",
+  "engines": {
+    "vscode": "^1.140.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:csharp"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "coloring-elements.open",
+        "title": "Coloring Elements: C# 색상 편집기 열기"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "coloring-elements.open",
+          "when": "editorLangId == csharp",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Coloring Elements",
+      "properties": {
+        "coloringElements.rules": {
+          "type": "object",
+          "scope": "resource",
+          "default": {},
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "description": "GUI에서 관리하는 Roslyn 정밀 색상 규칙입니다."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile && npm run build:analyzer",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint && npm run build:analyzer",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "test:unit": "npm run compile && mocha --ui tdd out/test/rules.test.js out/test/webview.test.js out/test/advancedRules.test.js",
+    "package": "vsce package",
+    "build:analyzer": "dotnet publish analyzer/ColoringElements.Analysis -c Release --no-self-contained -o analyzer-bin"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "@types/vscode": "^1.140.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^4.0.0",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  },
+  "publisher": "coloring-elements-local",
+  "license": "MIT",
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "기본 색상 편집은 사용할 수 있지만, Roslyn 프로젝트 로드는 신뢰한 작업 공간에서만 실행합니다."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "정밀 분석은 로컬 파일과 .NET SDK가 필요합니다."
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ynaru1203/coloring-elements.git"
+  },
+  "homepage": "https://github.com/ynaru1203/coloring-elements#readme",
+  "bugs": {
+    "url": "https://github.com/ynaru1203/coloring-elements/issues"
+  },
+  "author": "ynaru1203"
+}

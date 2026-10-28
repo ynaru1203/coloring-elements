@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{csp}}; script-src 'nonce-{{nonce}}';"><link rel="stylesheet" href="{{css}}"></head>
+<body><h1>Coloring Elements</h1><p>C# 코드의 색상을 설정합니다. 색상 선택을 확정하면 자동 저장됩니다. 드래그 중에는 에디터 설정을 변경하지 않습니다.</p>
+<label>분류 방식 <select id="engine"><option value="roslyn">정밀 분류 (Roslyn)</option><option value="native">기본 분류 (기존 C# 서버)</option></select></label>
+<p id="engine-note" class="notice"></p>
+<div class="toolbar"><button id="project">분석할 솔루션·프로젝트 선택</button></div><p id="analysis-status" role="status" aria-live="polite"></p>
+<label>저장 범위 <select id="target"><option value="user">사용자</option><option value="workspace">작업 공간</option></select></label>
+<div class="toolbar"><button id="detect">선택한 식별자 감지</button><button id="inspect">VS Code 적용 색상 검사</button><button id="enable">C# 의미 강조 켜기</button></div>
+<p id="enabled"></p><label>요소 <select id="type"></select></label>
+<label id="subtype-row" hidden><span id="subtype-label">종류</span><select id="subtype" aria-labelledby="subtype-label"></select></label>
+<fieldset id="modifier-section" hidden><legend>속성 조합 (체크한 조건을 모두 만족)</legend><p>설명을 보려면 항목 위에 마우스를 올려 두세요. ‘선택한 식별자 감지’를 누르면 해당 조건이 자동으로 체크됩니다.</p><div id="modifiers"></div></fieldset>
+<p id="selector"></p><p id="detected" role="status"></p>
+<label>색상 선택 <input type="color" id="picker" value="#808080"></label>
+<label>HEX <input id="hex" value="#808080" maxlength="7" pattern="#[0-9a-fA-F]{6}"></label>
+<label>RGB <input id="rgb" value="128, 128, 128" placeholder="0, 128, 255"></label>
+<button id="reset">이 범위의 색상 초기화 / 상속</button><p id="value"></p>
+<p id="preview" role="status"></p>
+<p>초기화하면 선택한 범위의 foreground만 제거합니다. 상위 범위·더 구체적인 규칙·테마별 규칙이 있으면 그 색상이 적용됩니다. 글꼴 스타일은 유지합니다.</p>
+<h2>저장된 C# 색상 규칙</h2><ul id="rules"></ul><div class="toolbar"><button id="import">가져오기 (병합)</button><button id="export">내보내기</button></div>
+<p>가져오기는 같은 조건의 색상을 덮어씁니다. 분류 방식별 규칙은 따로 저장됩니다. 정밀 규칙은 조건이 많은 순서, 요소를 지정한 순서로 우선하며 동점이면 규칙 ID의 사전순으로 정합니다. 정밀 규칙이 없으면 기존 강조를 유지합니다. VS Code 검사기는 기본 분류의 색상을 확인하는 도구입니다.</p>
+<p id="status" role="status" aria-live="polite"></p><script nonce="{{nonce}}" src="{{script}}"></script></body></html>

@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Coloring Elements",
+      "dependsOn": ["Compile extension", "Build Roslyn analyzer"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    { "label": "Compile extension", "type": "npm", "script": "compile", "problemMatcher": "$tsc" },
+    { "label": "Build Roslyn analyzer", "type": "npm", "script": "build:analyzer", "problemMatcher": "$msCompile" },
+    { "label": "Watch extension", "type": "npm", "script": "watch", "isBackground": true, "problemMatcher": "$tsc-watch" }
+  ]
+}
