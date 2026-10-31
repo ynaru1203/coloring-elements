@@ -27,6 +27,7 @@ public static class AnalysisServer
         Compilation? checkedCompilation = null;
         var pathComparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
         var documentPaths = new Dictionary<string, DocumentId[]>(pathComparer);
+        var overlayPaths = new HashSet<string>(pathComparer);
         while (await Console.In.ReadLineAsync() is { } line)
         {
             Request? request = null;
@@ -35,7 +36,7 @@ public static class AnalysisServer
                 request = JsonSerializer.Deserialize<Request>(line, Json) ?? throw new InvalidOperationException("Empty request");
                 if (request.Kind == "open")
                 {
-                    solution = null; checkedCompilation = null; workspace.CloseSolution();
+                    solution = null; checkedCompilation = null; overlayPaths.Clear(); workspace.CloseSolution();
                     var path = Path.GetFullPath(request.ProjectPath ?? throw new InvalidOperationException("Project path required"));
                     if (!File.Exists(path)) { throw new FileNotFoundException("프로젝트 파일을 찾을 수 없습니다.", path); }
                     if (Path.GetExtension(path) is ".sln" or ".slnx") { await workspace.OpenSolutionAsync(path); }
@@ -57,7 +58,19 @@ public static class AnalysisServer
                     if (!uri.IsFile || request.Text is null || request.FilePath is null || !Path.IsPathFullyQualified(request.FilePath)) { throw new InvalidOperationException("저장된 C# 파일만 분석할 수 있습니다."); }
                     var filePath = Path.GetFullPath(request.FilePath);
                     var current = solution;
-                    foreach (var overlay in (request.Overlays ?? []).Append(new Overlay(filePath, request.Text)))
+                    var overlays = (request.Overlays ?? []).Append(new Overlay(filePath, request.Text)).ToArray();
+                    var nextPaths = overlays.Where(overlay => Path.IsPathFullyQualified(overlay.FilePath))
+                        .Select(overlay => Path.GetFullPath(overlay.FilePath)).Where(documentPaths.ContainsKey).ToHashSet(pathComparer);
+                    // Closed documents must lose unsaved overlays without reloading the entire project.
+                    foreach (var closedPath in overlayPaths.Except(nextPaths, pathComparer))
+                    {
+                        var diskText = SourceText.From(await File.ReadAllTextAsync(closedPath));
+                        foreach (var id in documentPaths.GetValueOrDefault(closedPath) ?? [])
+                        {
+                            if (!(await current.GetDocument(id)!.GetTextAsync()).ContentEquals(diskText)) { current = current.WithDocumentText(id, diskText); }
+                        }
+                    }
+                    foreach (var overlay in overlays)
                     {
                         if (!Path.IsPathFullyQualified(overlay.FilePath)) { continue; }
                         foreach (var id in documentPaths.GetValueOrDefault(Path.GetFullPath(overlay.FilePath)) ?? [])
@@ -66,7 +79,8 @@ public static class AnalysisServer
                             if (!(await current.GetDocument(id)!.GetTextAsync()).ContentEquals(changed)) { current = current.WithDocumentText(id, changed); }
                         }
                     }
-                    // The client reloads on document close and external disk changes; retain compilations between edits.
+                    overlayPaths = nextPaths;
+                    // External disk changes reload the workspace; retain compilations across tab switches.
                     solution = current;
                     var documents = documentPaths.GetValueOrDefault(filePath) ?? [];
                     if (documents.Length == 0) { throw new InvalidOperationException("선택한 프로젝트에 이 파일이 없습니다. 프로젝트를 다시 선택해 주세요."); }

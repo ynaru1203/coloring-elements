@@ -69,7 +69,6 @@ export function activate(context: vscode.ExtensionContext) {
                     const rules = { ...advancedAtTarget() };
                     if (value === null) { delete rules[key]; } else { rules[key] = value; }
                     await advancedConfig().update('rules', rules, target);
-                    roslyn.invalidate();
                     await roslyn.refresh();
                 } else { await config().update(setting, updateRule(atTarget(), key, value), target); }
                 await send(); break;
@@ -104,7 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (engine === 'roslyn') {
                     for (const key of Object.keys(colors)) { const [type, ...mods] = key.slice(0, -7).split('.'); advancedSelector(type, mods); }
                     await advancedConfig().update('rules', { ...advancedAtTarget(), ...colors }, target);
-                    roslyn.invalidate(); await roslyn.refresh();
+                    await roslyn.refresh();
                 } else {
                     let next = atTarget();
                     for (const [key, value] of Object.entries(colors)) { next = updateRule(next, key, value); }

@@ -23,9 +23,9 @@ export class RoslynColoring implements vscode.Disposable {
         this.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
             if (event.document.languageId === 'csharp') { this.invalidate(); }
         }), vscode.workspace.onDidCloseTextDocument(document => {
-            if (document.languageId === 'csharp') { this.invalidate(true); }
-        }), vscode.window.onDidChangeVisibleTextEditors(() => this.schedule()),
-        vscode.workspace.onDidChangeConfiguration(event => { if (event.affectsConfiguration('coloringElements.rules')) { this.invalidate(); } }));
+            if (document.languageId === 'csharp') { this.invalidate(); }
+        }), vscode.window.onDidChangeVisibleTextEditors(() => this.schedule(0)),
+        vscode.workspace.onDidChangeConfiguration(event => { if (event.affectsConfiguration('coloringElements.rules')) { this.clear(); this.schedule(0); } }));
         const watcher = vscode.workspace.createFileSystemWatcher('**/*.{cs,csproj,sln,slnx}');
         this.subscriptions.push(watcher, watcher.onDidCreate(() => this.invalidate(true)), watcher.onDidDelete(() => this.invalidate(true)),
             watcher.onDidChange(uri => {
@@ -115,10 +115,10 @@ export class RoslynColoring implements vscode.Disposable {
         if (reload) { this.client?.dispose(); this.client = undefined; this.loading = undefined; this.project = undefined; }
         this.schedule();
     }
-    schedule() {
+    schedule(delay = 300) {
         if (this.disposed) { return; }
         if (this.timer) { clearTimeout(this.timer); }
-        this.timer = setTimeout(() => { void this.refresh(); }, 300);
+        this.timer = setTimeout(() => { void this.refresh(); }, delay);
     }
     async refresh() {
         if (this.disposed || !vscode.workspace.isTrusted) { return; }
@@ -127,10 +127,11 @@ export class RoslynColoring implements vscode.Disposable {
         try {
             for (const editor of vscode.window.visibleTextEditors) {
                 if (editor.document.languageId !== 'csharp' || editor.document.uri.scheme !== 'file') { continue; }
-                const rules = vscode.workspace.getConfiguration('coloringElements', editor.document.uri).get<AdvancedRules>('rules', {});
+                let rules = vscode.workspace.getConfiguration('coloringElements', editor.document.uri).get<AdvancedRules>('rules', {});
                 if (!Object.keys(rules).length) { continue; }
                 const result = await this.analyze(editor.document);
                 if (!result) { continue; }
+                rules = vscode.workspace.getConfiguration('coloringElements', editor.document.uri).get<AdvancedRules>('rules', {});
                 const groups = new Map<string, vscode.Range[]>();
                 for (const token of result.tokens) {
                     const winner = winningRule(rules, token.type, token.modifiers);
@@ -145,7 +146,7 @@ export class RoslynColoring implements vscode.Disposable {
                 this.status(`정밀 색상 적용됨: ${path.basename(editor.document.fileName)}`);
             }
         } catch (error) { this.status(error instanceof Error ? error.message : String(error)); }
-        finally { this.busy = false; if (this.again) { this.again = false; this.schedule(); } }
+        finally { this.busy = false; if (this.again) { this.again = false; this.schedule(0); } }
     }
     dispose() {
         this.disposed = true;

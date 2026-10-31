@@ -43,6 +43,12 @@ suite('Real Roslyn project analysis', () => {
         const reverted = await analyze(refsPath, text, [{ filePath: playerPath, text: player }]);
         assert.ok(named(reverted.tokens, text, 'MaxHealth')[0].modifiers.includes('setterPrivate'));
     });
+    test('closing an unsaved document restores disk symbols without reopening the project', async () => {
+        const changed = await analyze(refsPath, references, [{ filePath: playerPath, text: player.replace('private set', 'protected set') }]);
+        assert.ok(named(changed.tokens, references, 'MaxHealth')[0].modifiers.includes('setterProtected'));
+        const closed = await analyze(refsPath, references);
+        assert.ok(named(closed.tokens, references, 'MaxHealth')[0].modifiers.includes('setterPrivate'));
+    });
     test('compile errors and files outside the project fail without guessed classifications', async () => {
         await assert.rejects(() => analyze(playerPath, player + '\ninvalid syntax'), /컴파일 오류/);
         await assert.rejects(() => analyze(path.join(fixture, 'NotInProject.cs'), 'class NotInProject {}'), /프로젝트에 이 파일/);
@@ -94,7 +100,9 @@ suite('Real Roslyn project analysis', () => {
             assert.strictEqual(detected.winner, 'field.private.readonly:csharp');
             await service.refresh();
             assert.ok(statuses.some(status => status.includes('정밀 색상 적용됨')));
+            const cached = await service.analyze(document);
             await config.update('rules', { 'keyword.text_public:csharp': '#ABCDEF', 'literal.text_true:csharp': '#112233' }, vscode.ConfigurationTarget.WorkspaceFolder);
+            assert.strictEqual(await service.analyze(document), cached, 'color changes reuse semantic analysis');
             const keywordDocument = await vscode.workspace.openTextDocument(path.join(fixture, 'Keywords.cs'));
             const keywordEditor = await vscode.window.showTextDocument(keywordDocument);
             const lines = keywordDocument.getText().split(/\r?\n/);

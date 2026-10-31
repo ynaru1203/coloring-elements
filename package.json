@@ -2,7 +2,7 @@
   "name": "coloring-elements",
   "displayName": "Coloring Elements",
   "description": "GUI-based C# color customization with Roslyn-aware symbol, keyword and literal rules.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "engines": {
     "vscode": "^1.140.0"
   },
